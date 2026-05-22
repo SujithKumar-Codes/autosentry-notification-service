@@ -1,3 +1,6 @@
+server:
+  port: 8083
+
 spring:
   application:
     name: notification-service
@@ -16,3 +19,16 @@ spring:
         spring.json.trusted.packages: "*"
         spring.json.value.default.type: com.autosentry.notification_service.event.VehicleExpiryEvent
         spring.json.use.type.headers: false
+
+  mail:
+    host: smtp.gmail.com
+    port: 587
+    username: yourmail@gmail.com
+    password: your-app-password
+
+    properties:
+      mail:
+        smtp:
+          auth: true
+          starttls:
+            enable: true
