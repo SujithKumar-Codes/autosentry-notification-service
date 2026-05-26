@@ -6,26 +6,35 @@ spring:
     name: notification-service
 
   kafka:
-    bootstrap-servers: localhost:9092
+    bootstrap-servers: autosentry-kafka:9092
 
     consumer:
       group-id: notification-group
       auto-offset-reset: earliest
+      enable-auto-commit: true
 
       key-deserializer: org.apache.kafka.common.serialization.StringDeserializer
       value-deserializer: org.springframework.kafka.support.serializer.JsonDeserializer
 
       properties:
-        spring.json.trusted.packages: "*"
+        spring.json.trusted.packages: "com.autosentry.*"
         spring.json.value.default.type: com.autosentry.notification_service.event.VehicleExpiryEvent
         spring.json.use.type.headers: false
+
+        session.timeout.ms: 45000
+        heartbeat.interval.ms: 15000
+        max.poll.interval.ms: 300000
+
+    listener:
+      missing-topics-fatal: false
+      ack-mode: record
+      concurrency: 1
 
   mail:
     host: smtp.gmail.com
     port: 587
     username: yourmail@gmail.com
     password: your-app-password
-
     properties:
       mail:
         smtp:
@@ -36,4 +45,10 @@ spring:
 eureka:
   client:
     serviceUrl:
-      defaultZone: http://localhost:8761/eureka/
+      defaultZone: http://eureka-server:8761/eureka/
+
+logging:
+  level:
+    org.springframework.kafka.listener.KafkaMessageListenerContainer: DEBUG
+    org.springframework.kafka.listener.KafkaMessageListenerContainer$ListenerConsumer: DEBUG
+    org.apache.kafka.clients.consumer.internals: DEBUG
