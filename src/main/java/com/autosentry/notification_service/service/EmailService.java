@@ -2,20 +2,27 @@ package com.autosentry.notification_service.service;
 
 import com.autosentry.notification_service.event.VehicleExpiryEvent;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.stereotype.Service;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class EmailService {
 
     private final JavaMailSender mailSender;
 
+    @Value("${spring.mail.username:noreply@autosentry.local}")
+    private String fromAddress;
+
     public void sendExpiryEmail(VehicleExpiryEvent event) {
 
         SimpleMailMessage message = new SimpleMailMessage();
 
+        message.setFrom(fromAddress.isBlank() ? "noreply@autosentry.local" : fromAddress);
         message.setTo(event.getOwnerEmail());
 
         message.setSubject("Vehicle Expiry Alert");
@@ -39,6 +46,6 @@ public class EmailService {
 
         mailSender.send(message);
 
-        System.out.println("Email sent to " + event.getOwnerEmail());
+        log.info("Expiry email sent to {} for plate {}", event.getOwnerEmail(), event.getPlateNumber());
     }
 }
