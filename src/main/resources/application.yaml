@@ -52,3 +52,9 @@ logging:
     org.springframework.kafka.listener.KafkaMessageListenerContainer: DEBUG
     org.springframework.kafka.listener.KafkaMessageListenerContainer$ListenerConsumer: DEBUG
     org.apache.kafka.clients.consumer.internals: DEBUG
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: "health,prometheus"
