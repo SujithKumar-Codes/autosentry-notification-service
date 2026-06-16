@@ -20,6 +20,8 @@ public class EmailService {
 
     public void sendExpiryEmail(VehicleExpiryEvent event) {
 
+        log.info("Preparing to construct {} email for Vehicle Plate: {} to {}", event.getEventType(), event.getPlateNumber(), event.getOwnerEmail());
+
         SimpleMailMessage message = new SimpleMailMessage();
 
         message.setFrom(fromAddress.isBlank() ? "noreply@autosentry.local" : fromAddress);
@@ -44,8 +46,17 @@ public class EmailService {
 
         message.setText(body);
 
-        mailSender.send(message);
+        log.debug("Email payload constructed successfully. Attempting to dispatch via JavaMailSender.");
 
-        log.info("Expiry email sent to {} for plate {}", event.getOwnerEmail(), event.getPlateNumber());
+        try {
+            mailSender.send(message);
+            log.info("Successfully dispatched expiry email to {} for plate {}", event.getOwnerEmail(), event.getPlateNumber());
+        } catch (Exception e) {
+            // Log the critical failure if MailHog or the SMTP server is down
+            log.error("Failed to send expiry email to {} for plate {}. Error: {}", event.getOwnerEmail(), event.getPlateNumber(), e.getMessage(), e);
+
+            // Re-throw the exception so the Kafka consumer knows the email failed and can retry it
+            throw e;
+        }
     }
 }

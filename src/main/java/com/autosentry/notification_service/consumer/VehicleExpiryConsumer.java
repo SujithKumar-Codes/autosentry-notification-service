@@ -26,9 +26,16 @@ public class VehicleExpiryConsumer {
             @Header(KafkaHeaders.OFFSET) long offset
     ) {
 
-        log.info("Consumed vehicle-expiry event topic={} offset={} plate={} type={} daysLeft={}",
-                topic, offset, event.getPlateNumber(), event.getEventType(), event.getDaysLeft());
+        log.info("📥 INCOMING KAFKA EVENT: Consuming from topic '{}' [Offset: {}]", topic, offset);
+        log.info("Event Details - Plate: {}, Type: {}, Days Left: {}", event.getPlateNumber(), event.getEventType(), event.getDaysLeft());
 
-        emailService.sendExpiryEmail(event);
+        try {
+            emailService.sendExpiryEmail(event);
+            log.info("✅ SUCCESSFULLY PROCESSED KAFKA EVENT: Notification workflow completed for Plate: {}", event.getPlateNumber());
+        } catch (Exception e) {
+            log.error("❌ FAILED TO PROCESS KAFKA EVENT: Email dispatch failed for Plate: {}. Reason: {}", event.getPlateNumber(), e.getMessage(), e);
+            // Re-throw so Kafka knows the consumption failed and can trigger retries or send to a Dead Letter Queue (DLQ)
+            throw e;
+        }
     }
 }
